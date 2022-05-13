@@ -1,0 +1,9 @@
+- platform: template
+  switches:
+    epson:
+      friendly_name: "EPSON"
+      unique_id: epson
+      turn_on:
+        service: esphome.sensors_epson_toggle
+      turn_off:
+        service: esphome.sensors_epson_toggle

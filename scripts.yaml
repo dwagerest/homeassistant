@@ -1,0 +1,345 @@
+alloff:
+  alias: AllOff
+  sequence:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.kitchen_lights
+        state: 'on'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.kitchen_lights
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.14d2faecc24ad000_group
+        state: 'on'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.14d2faecc24ad000_group
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+  - choose: []
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.svet_nad_plitoi
+        state: 'on'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.svet_nad_plitoi
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.sonoff_1000f18cd1
+        state: 'on'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.sonoff_1000f18cd1
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.led_matrix
+        state: 'on'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.led_matrix
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: switch.kitchen_l2
+        state: 'on'
+      sequence:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.kitchen_l2
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+    default: []
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: switch.epson
+        state: 'on'
+      sequence:
+      - service: script.epsontoggle
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+    default: []
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.sonoff_10010af227
+        state: 'on'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.sonoff_10010af227
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: switch.0x0c4314fffe98d7a9
+        state: 'on'
+      sequence:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.0x0c4314fffe98d7a9
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.14d2faecc24ad000_group
+        state: 'on'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.14d2faecc24ad000_group
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 0
+          milliseconds: 300
+    default: []
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.hall
+        state: 'on'
+      sequence:
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - service: light.turn_off
+        data: {}
+        target:
+          entity_id: light.hall
+  mode: single
+epsontoggle:
+  sequence:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: switch.epson
+        state: 'off'
+      sequence:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.epson
+      - service: switch.turn_on
+        target:
+          entity_id: switch.0x0c4314fffe98d7a9
+    - conditions:
+      - condition: state
+        entity_id: switch.epson
+        state: 'on'
+      sequence:
+      - service: python_script.set_state
+        data_template:
+          entity_id: sensor.epson_counter
+          state: '{{states[''sensor.epson_counter''].state | int - 1}}
+
+            '
+      - service: esphome.sensors_epson_toggle
+      - delay:
+          seconds: 1
+      - service: switch.turn_off
+        target:
+          entity_id: switch.epson
+      - service: switch.turn_off
+        target:
+          entity_id: switch.0x0c4314fffe98d7a9
+    default: []
+  - repeat:
+      until:
+      - condition: state
+        entity_id: sensor.epson_counter
+        state: '0'
+      sequence:
+      - service: python_script.set_state
+        data_template:
+          entity_id: sensor.epson_counter
+          state: "{{states['sensor.epson_counter'].state | int - 1}}  \n"
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 1
+          milliseconds: 0
+  - service: python_script.set_state
+    data_template:
+      entity_id: sensor.epson_counter
+      state: "{{states['sensor.epson_counter'].attributes.default}}  \n"
+  mode: single
+  alias: epsonToggle
+'1643146039910':
+  alias: AllOffDelay
+  sequence:
+  - service: esphome.matrix_alof
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: '{{ states(''input_number.timer'')  | int }}'
+      milliseconds: 0
+  - service: script.alloff
+  - service: script.matrixlastpage
+  mode: single
+matrixlastpage:
+  sequence:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: sensor.last_page
+        state: page1
+      sequence:
+      - service: esphome.matrix_clock
+    - conditions:
+      - condition: state
+        entity_id: sensor.last_page
+        state: page2
+      sequence:
+      - service: esphome.matrix_fire
+  mode: single
+  alias: matrixLastPage
+weathertotts:
+  alias: weatherToTts
+  sequence:
+  - service: notify.tts_room
+    data:
+      message: На улице {{ 'Облачно' if is_state('weather.home', 'cloudy') }} {{ 'Ясно'
+        if is_state('weather.home', 'clear-night') }} {{ 'Туман' if is_state('weather.home',
+        'fog') }} {{ 'Град' if is_state('weather.home', 'hail') }} {{ 'Гроза' if is_state('weather.home',
+        'lightning') }} {{ 'Гроза с ливнем' if is_state('weather.home', 'lightning-rainy')
+        }} {{ 'Переменная облачность' if is_state('weather.home', 'partlycloudy')
+        }} {{ 'Проливной дождь' if is_state('weather.home', 'pouring') }} {{ 'Дождь'
+        if is_state('weather.home', 'rainy') }} {{ 'Снег' if is_state('weather.home',
+        'snowy') }} {{ 'Снег с дождем' if is_state('weather.home', 'snowy-rainy')
+        }} {{ 'Сильный ветер' if is_state('weather.home', 'windy') }} {{ 'Ветер' if
+        is_state('weather.home', 'windy-variant') }}. Температура {{ (state_attr('weather.home',
+        'temperature') | round)|format(morph='градус', as_text=false) }}.  Скорость
+        ветра  {{ (state_attr('weather.home', 'wind_speed') | round)|format(morph='метр',
+        as_text=false) }} в секунду
+  mode: single
+'1645120357529':
+  alias: Новый скрипт
+  sequence:
+  - event: tileboard
+    event_data:
+      page: 1
+      command: open_page
+  mode: single
+'1647196807719':
+  alias: screen
+  sequence:
+  - service: camera.snapshot
+    data:
+      filename: /media/yourcamera_{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
+    target:
+      entity_id: camera.balcony_camera
+  mode: single
+'1647212561684':
+  alias: telegramMenu
+  sequence:
+  - service: notify.me
+    data:
+      message: <code>команды</code>
+      data:
+        inline_keyboard:
+        - Датчики:/stat, Выключатели:/switches
+        - Выключить всё:/off
+        keyboard:
+        - /menu
+        - /stat, /switches
+        - /off
+  mode: single
+'1649009622964':
+  alias: Новый скрипт
+  sequence:
+  - service: python_script.set_state
+    data_template:
+      entity_id: device_tracker.xiaomi
+      state: not_home
+  - service: python_script.set_state
+    data_template:
+      entity_id: device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58
+      state: not_home
+  mode: single
+'1650278931894':
+  alias: Новый скрипт
+  sequence:
+  - repeat:
+      while:
+      - condition: time
+        after: 00:00:00
+        before: '23:59:00'
+      sequence:
+      - service: esphome.test_control_servo
+        data:
+          level: 70
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 10
+          milliseconds: 0
+      - service: esphome.test_control_servo
+        data:
+          level: 90
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 10
+          milliseconds: 0
+  mode: single

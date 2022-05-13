@@ -1,0 +1,19 @@
+#- platform: group
+#  name: Kitchen Lights
+#  unique_id: kitchen_lights
+#  entities:
+#    - light.kitchen1
+#    - light.kitchen2
+#    - light.kitchen3
+- platform: mqtt
+  name: "Panel"
+  state_topic: "tileboard/screen/state"
+  command_topic: "tileboard/screen/state"
+  brightness_state_topic: "tileboard/screen/brightness"
+  brightness_command_topic: "tileboard/screen/brightness"
+  qos: 0
+  payload_on: "ON"
+  payload_off: "OFF"
+  optimistic: false
+  brightness_scale: 100
+  on_command_type: first

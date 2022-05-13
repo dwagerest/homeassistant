@@ -1,0 +1,113 @@
+- platform: systemmonitor
+  resources:
+    - type: disk_use_percent
+      arg: /
+    - type: memory_use_percent
+    - type: processor_temperature
+    - type: ipv4_address
+      arg: wlan0
+    - type: processor_use
+    - type: last_boot
+- platform: version
+
+- platform: mqtt
+  state_topic: "hermes/intent/ChangeLightStateRoom"
+  name: "Rhasspy Room Switch"
+  value_template: "{{ value_json.input}}"
+  json_attributes_topic: "hermes/intent/ChangeLightStateRoom"
+  json_attributes_template: "{{ value_json | tojson }}"
+- platform: mqtt
+  state_topic: "hermes/intent/ChangeLightStateKitchen"
+  name: "Rhasspy Kitchen Switch"
+  value_template: "{{ value_json.input}}"
+  json_attributes_topic: "hermes/intent/ChangeLightStateKitchen"
+  json_attributes_template: "{{ value_json | tojson }}"
+- platform: template
+  sensors:
+    epson_counter:
+      value_template: "{{ 55 }}"
+      attribute_templates:
+        default: "{{ 55 }}"
+- platform: template
+
+  sensors:
+    bathroom_current_min:
+      unique_id: bathroom_current_min
+      value_template: "{{ 0.0 }}"
+
+- platform: template
+  sensors:
+    total_cold_in_ha:
+      value_template: >
+        {% if  states('sensor.total_cold_in_esphome') in ['unknown', 'unavailable', '0', '0.0']%}   
+          {{states('sensor.total_cold_in_ha')}}
+        {% else %}
+        {{states('sensor.total_cold_in_esphome')}}
+        {% endif %}
+- platform: template
+  sensors:
+    total_hot_in_ha:
+      value_template: >
+        {% if  states('sensor.total_hot_in_esphome') in ['unknown', 'unavailable', '0', '0.0']%}   
+          {{states('sensor.total_hot_in_ha')}}
+        {% else %}
+        {{states('sensor.total_hot_in_esphome')}}
+        {% endif %}
+- platform: statistics
+  name: "Bathroom humidity min over last 10 minutes"
+  unique_id: sensor.bathroom_humidity_min_over_last_10_minutes
+  entity_id: sensor.bathroom_humidity
+  state_characteristic: value_min
+  max_age:
+    minutes: 10
+  sampling_size: 22
+- platform: statistics
+  name: "Bathroom humidity max over last 15 minutes"
+  unique_id: sensor.bathroom_humidity_max_over_last_15_minutes
+  entity_id: sensor.bathroom_humidity
+  state_characteristic: value_max
+  max_age:
+    minutes: 15
+  sampling_size: 22
+# - platform: history_stats
+#   name: v30pro_not_home
+#   entity_id: device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58
+#   state: "not_home"
+#   type: time
+#   start: "{{ as_timestamp(states.device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58.last_changed) }}"
+#   end: "{{ now() }}"
+# - platform: history_stats
+#   name: mi9_not_home
+#   entity_id: device_tracker.xiaomi
+#   state: "not_home"
+#   type: time
+#   start: "{{ as_timestamp(states.device_tracker.xiaomi) }}"
+#   end: "{{ now() }}"
+# - platform: template
+#   sensors:
+#     ivan_home:
+#       friendly_name: "Ivan Home"
+#       value_template: >
+#         {% if states('sensor.v30pro_not_home')|float > 0.2 %}
+#           not_home
+#         {% else %}
+#           home
+#         {% endif %}
+# - platform: template
+#   sensors:
+#     polina_home:
+#       friendly_name: "Polina Home"
+#       value_template: >
+#         {% if states('sensor.mi9_not_home')|float > 0.2 %}
+#           not_home
+#         {% else %}
+#           home
+#         {% endif %}
+- platform: mqtt
+  state_topic: "orange/bathroom/coldwater"
+  name: "Cold water counter"
+  #value_template: "{{ value_json.input}}"
+- platform: mqtt
+  state_topic: "orange/bathroom/hotwater"
+  name: "Hot water counter"
+  #value_template: "{{ value_json.input}}"

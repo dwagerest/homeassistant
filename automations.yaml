@@ -1,0 +1,557 @@
+- id: '1640190524857'
+  alias: screenMode
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: input_select.matrix_mode
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_select.matrix_mode
+        state: Камин
+      sequence:
+      - service: esphome.matrix_fire
+    - conditions:
+      - condition: state
+        entity_id: input_select.matrix_mode
+        state: Часы
+      sequence:
+      - service: esphome.matrix_clock
+    default: []
+  mode: single
+- id: '1639245200202'
+  alias: kitchen lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: switch.kitchen_l1
+    to: 'on'
+  - platform: state
+    entity_id: switch.kitchen_l1
+    to: 'off'
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: switch.kitchen_l1
+        state: 'on'
+      sequence:
+      - service: light.turn_on
+        target:
+          entity_id: light.kitchen_lights
+      - service: switch.turn_on
+        target:
+          entity_id: switch.kitchen_l1
+    - conditions:
+      - condition: state
+        entity_id: switch.kitchen_l1
+        state: 'off'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.kitchen_lights
+    default: []
+  mode: single
+- id: '1640642627284'
+  alias: kitchen switch
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: light.kitchen_lights
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 1
+    to: 'on'
+  - platform: state
+    entity_id: light.kitchen_lights
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 1
+    to: 'off'
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.kitchen_lights
+        state: 'on'
+        for:
+          hours: 0
+          minutes: 0
+          seconds: 1
+      sequence:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.kitchen_l1
+    - conditions:
+      - condition: state
+        entity_id: light.kitchen_lights
+        state: 'off'
+        for:
+          hours: 0
+          minutes: 0
+          seconds: 1
+      sequence:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.kitchen_l1
+    default: []
+  mode: single
+- id: '1640911301753'
+  alias: rhasspyRoom
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: sensor.rhasspy_room_switch
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_room_switch
+        state: свет
+      sequence:
+      - service: light.toggle
+        target:
+          entity_id: light.sonoff_1000f18cd1
+        data: {}
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_room_switch
+        state: ярче
+      sequence:
+      - service: light.turn_on
+        target:
+          entity_id: light.sonoff_1000f18cd1
+        data:
+          brightness_pct: 100
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_room_switch
+        state: экран
+      sequence:
+      - service: light.toggle
+        target:
+          entity_id: light.led_matrix
+        data: {}
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_room_switch
+        state: камин
+      sequence:
+      - service: esphome.matrix_fire
+        data: {}
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: light.led_matrix
+            state: 'off'
+          sequence:
+          - service: light.turn_on
+            target:
+              entity_id: light.led_matrix
+            data: {}
+        default: []
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_room_switch
+        state: часы
+      sequence:
+      - service: esphome.matrix_clock
+        data: {}
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: light.led_matrix
+            state: 'off'
+          sequence:
+          - service: light.turn_on
+            target:
+              entity_id: light.led_matrix
+            data: {}
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_room_switch
+        state: выключи всё
+      sequence:
+      - service: script.alloff
+        data: {}
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_room_switch
+        state: погода
+      sequence:
+      - service: script.weathertotts
+        data: {}
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_room_switch
+        state: проектор
+      sequence:
+      - service: script.epsontoggle
+        data: {}
+      - choose: []
+        default: []
+    default: []
+  mode: single
+- id: '1641080482578'
+  alias: rhasspyKitchen
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: sensor.rhasspy_kitchen_switch
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_kitchen_switch
+        state: свет
+      sequence:
+      - service: light.toggle
+        target:
+          entity_id: light.kitchen_lights
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_kitchen_switch
+        state: ярче
+      sequence:
+      - service: light.turn_on
+        data:
+          brightness_pct: 100
+        target:
+          entity_id: light.kitchen_lights
+    - conditions:
+      - condition: state
+        entity_id: sensor.rhasspy_kitchen_switch
+        state: лента
+      sequence:
+      - service: light.toggle
+        target:
+          entity_id: light.svet_nad_plitoi
+    default: []
+  mode: single
+- id: '1641938078048'
+  alias: test rhasspy stop music
+  description: ''
+  trigger:
+  - platform: mqtt
+    topic: hermes/hotword/toggleOff
+    payload: ' {"siteId": "Room", "reason": "dialogueSession"}'
+  condition: []
+  action:
+  - service: esphome.matrix_loading
+    data: {}
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.led_matrix
+        state: 'off'
+      sequence:
+      - service: light.turn_on
+        target:
+          entity_id: light.led_matrix
+        data: {}
+      - wait_for_trigger:
+        - platform: mqtt
+          topic: hermes/hotword/toggleOff
+          payload: ' {"siteId": "Room", "reason": "playAudio"}'
+      - service: light.turn_off
+        target:
+          entity_id: light.led_matrix
+        data: {}
+    - conditions:
+      - condition: state
+        entity_id: light.led_matrix
+        state: 'on'
+      sequence:
+      - wait_for_trigger:
+        - platform: mqtt
+          topic: hermes/hotword/toggleOff
+          payload: ' {"siteId": "Room", "reason": "playAudio"}'
+  - service: script.matrixlastpage
+    data: {}
+  mode: single
+- id: '1642363922479'
+  alias: telegramHomeNotify
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58
+    to: home
+    from: not_home
+  - platform: state
+    entity_id: device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58
+    to: not_home
+    from: home
+  - platform: state
+    entity_id: device_tracker.xiaomi
+    to: home
+    from: not_home
+  - platform: state
+    entity_id: device_tracker.xiaomi
+    to: not_home
+    from: home
+  condition: []
+  action:
+  - service: notify.me
+    data_template:
+      message: '{% if (is_state("device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58", "home"))
+        %}    {%if(as_timestamp(now()) - as_timestamp(states.device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58.last_changed)<
+        2)%} Ivan home {%endif%}    {% elif (is_state("device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58",
+        "not_home")) %} {%if(as_timestamp(now()) - as_timestamp(states.device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58.last_changed)<
+        2)%} Ivan not home {%endif%}    {% endif %}  {% if (is_state("device_tracker.xiaomi",
+        "home")) %}    {%if(as_timestamp(now()) - as_timestamp(states.device_tracker.xiaomi.last_changed)<
+        2)%} Polina home {%endif%}    {% elif (is_state("device_tracker.xiaomi", "not_home"))
+        %} {%if(as_timestamp(now()) - as_timestamp(states.device_tracker.xiaomi.last_changed)<
+        2)%} Polina not home {%endif%}    {% endif %} '
+  mode: single
+- id: '1645232939030'
+  alias: bathtoom_fan
+  description: управление вентилятором в зависимости от влажности
+  trigger:
+  - platform: template
+    value_template: '{{ states(''sensor.bathroom_humidity'') | float - states(''sensor.bathroom_humidity_min_over_last_10_minutes'')
+      | float > 20.0 }}'
+    id: humidity_up
+  - platform: template
+    value_template: '{{ states(''sensor.bathroom_humidity'') | float - states(''sensor.bathroom_current_min'')
+      | float  < 15.0 }}'
+    id: humidity_down
+  - platform: state
+    entity_id: light.sonoff_10010af227
+    from: 'on'
+    id: light_off
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: humidity_up
+      sequence:
+      - service: python_script.set_state
+        data_template:
+          entity_id: sensor.bathroom_current_min
+          state: '{{states[''sensor.bathroom_humidity_min_over_last_10_minutes''].state
+            | float}}
+
+            '
+      - service: switch.turn_on
+        data: {}
+        target:
+          entity_id: switch.bathroom_fan
+    - conditions:
+      - condition: trigger
+        id: humidity_down
+      sequence:
+      - service: switch.turn_off
+        data: {}
+        target:
+          entity_id: switch.bathroom_fan
+    - conditions:
+      - condition: trigger
+        id: light_off
+      - condition: state
+        entity_id: switch.bathroom_fan
+        state: 'off'
+      - condition: template
+        value_template: '{{ as_timestamp(now()) - as_timestamp(states.switch.bathroom_fan.last_changed)  >
+          240 }}'
+      sequence:
+      - service: switch.turn_on
+        data: {}
+        target:
+          entity_id: switch.bathroom_fan
+      - delay:
+          hours: 0
+          minutes: 10
+          seconds: 0
+          milliseconds: 0
+      - service: switch.turn_off
+        data: {}
+        target:
+          entity_id: switch.bathroom_fan
+    default: []
+  mode: restart
+- id: '1645232939256'
+  alias: Новая автоматизация
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: sensor.bathroom_humidity
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ now().hour < 9 }}'
+      sequence:
+      - service: switch.turn_on
+        data: {}
+        target:
+          entity_id: switch.bathroom_fan
+    default: []
+  mode: single
+- id: '1645613601442'
+  alias: batgroom_light
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.bathroom_pir
+    to: 'on'
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.sonoff_10010af227
+        state: 'off'
+      sequence:
+      - service: light.turn_on
+        data: {}
+        target:
+          entity_id: light.sonoff_10010af227
+    default: []
+  mode: single
+- id: '1645614472361'
+  alias: fantest
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: light.sonoff_10010af227
+    from: 'on'
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: switch.bathroom_fan
+        state: 'off'
+      sequence:
+      - service: switch.turn_on
+        data: {}
+        target:
+          entity_id: switch.bathroom_fan
+    default: []
+  mode: single
+- id: '1645637535024'
+  alias: hall_light_when_home
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: device_tracker.nmap_tracker_fa_ad_6c_fc_f9_58
+    to: home
+    from: not_home
+  - platform: state
+    entity_id: device_tracker.xiaomi
+    to: home
+    from: not_home
+  condition:
+  - condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.hall
+        state: 'off'
+      sequence:
+      - service: light.turn_on
+        data: {}
+        target:
+          entity_id: light.hall
+    default: []
+  mode: single
+- id: '1647212865687'
+  alias: telegramStat
+  trigger:
+  - platform: event
+    event_type: telegram_callback
+    event_data:
+      command: /stat
+  - platform: event
+    event_type: telegram_command
+    event_data:
+      command: /stat
+  - platform: event
+    event_type: telegram_command
+    event_data:
+      command: /stat@homehshsbandushshdjcisiehtjkdbot
+  action:
+  - service: notify.me
+    data_template:
+      message: "\n\n<code>Комната</code>\n<code>Температура : {{states.sensor.living_room_temperature.state}}°C</code>\n\
+        <code>Влажность   : {{states.sensor.living_room_humidity.state}}%</code>\n\
+        <code>CO2         : {{states.sensor.senseair_co2_value.state}} ppm</code>\n\
+        <code>PM 1        : {{states.sensor.particulate_matter_1_0um_concentration.state}}\
+        \ µg/m³</code>\n<code>PM 2.5      : {{states.sensor.particulate_matter_2_5um_concentration.state}}\
+        \ µg/m³</code>\n<code>PM 10       : {{states.sensor.particulate_matter_10_0um_concentration.state}}\
+        \ µg/m³</code> \n\n<code>Кухня</code>\n<code>Температура : {{states.sensor.zhimi_humidifier_ca1_temperature.state}}°C</code>\n\
+        <code>Влажность   : {{states.sensor.zhimi_humidifier_ca1_humidity.state}}%</code>\n\
+        \n<code>Ванная</code>\n<code>Температура : {{states.sensor.bathroom_humidity.state}}°C</code>\n\
+        <code>Влажность    : {{states.sensor.bathroom_temperature.state}} %</code>\n\
+        \n<code>Балкон</code>\n<code>Температура : {{states.sensor.outside_temperature.state}}°C</code>\n\
+        <code>Давление    : {{states.sensor.outside_pressure.state}} hPa</code>"
+  mode: single
+- id: '1647286347705'
+  alias: telegramSwitches
+  trigger:
+  - platform: event
+    event_type: telegram_callback
+    event_data:
+      command: /switches
+  - platform: event
+    event_type: telegram_command
+    event_data:
+      command: /switches
+  - platform: event
+    event_type: telegram_command
+    event_data:
+      command: /switches@homehshsbandushshdjcisiehtjkdbot
+  action:
+  - service: notify.me
+    data_template:
+      message: '<code>Свет в комнате: {{states.light.sonoff_1000f18cd1.state}}</code>
+
+        <code>Экран: {{states.light.led_matrix.state}}</code>
+
+        <code>Проектор: {{states.switch.epson.state}}</code>
+
+        <code>Кухня люстра: {{states.light.kitchen_lights.state}}</code>
+
+        <code>Кухня шкаф: {{states.light.svet_nad_plitoi.state}}</code>
+
+        <code>Свет в коридоре: {{states.light.hall.state}}</code>
+
+        <code>Свет в ванной: {{states.light.sonoff_10010af227.state}}</code>'
+  mode: single
+- id: '1649009962737'
+  alias: telegramAllOff
+  description: ''
+  trigger:
+  - platform: event
+    event_type: telegram_command
+    event_data:
+      command: /off
+  - platform: event
+    event_type: telegram_callback
+    event_data:
+      command: /off
+  - platform: event
+    event_type: telegram_command
+    event_data:
+      command: /off@homehshsbandushshdjcisiehtjkdbot
+  condition: []
+  action:
+  - service: script.alloff
+  - wait_for_trigger: []
+  - service: notify.me
+    data_template:
+      message: '<code>All_off: Done</code>'
+  mode: single
