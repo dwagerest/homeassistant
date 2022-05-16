@@ -1,0 +1,89 @@
+esphome:
+  name: balcony-camera
+
+esp32:
+  board: esp32cam
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+  password: "7e05a779ea15c032584f12a706f12707"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  manual_ip:
+   static_ip: 192.168.3.104
+   gateway: 192.168.3.1
+   subnet: 255.255.255.0
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Balcony-Camera Fallback Hotspot"
+    password: !secret hotspot_password
+
+captive_portal:
+
+
+
+#esp32_camera:
+#  external_clock:
+#    pin: GPIO0
+#    frequency: 20MHz
+#  i2c_pins:
+#    sda: GPIO26
+#    scl: GPIO27
+#  data_pins: [GPIO5, GPIO18, GPIO19, GPIO21, GPIO36, GPIO39, GPIO34, GPIO35]
+#  vsync_pin: GPIO25
+#  href_pin: GPIO23
+#  pixel_clock_pin: GPIO22
+#  power_down_pin: GPIO32
+#  resolution: 640x480  #1600x1200
+ # max_framerate: true Hz
+#  vertical_flip: true
+  # Image settings
+#  name: Balcony camera
+i2c:
+  sda: 2
+  scl: 14
+  scan: true
+  id: bmp_bus
+sensor:
+  - platform: bmp280
+    i2c_id: bmp_bus
+    temperature:
+      name: "Outside Temperature"
+      oversampling: 16x
+    pressure:
+      name: "Outside Pressure"
+    address: 0x76
+    update_interval: 60s
+switch:
+  - platform: gpio
+    pin: 4
+    name: Flash
+output:
+  - platform: ledc
+    id: output_component1
+    pin: 4
+    frequency: 8000 Hz
+
+ #   min_power: 0.005
+
+  - platform: ledc
+    id: output_component2
+    pin: 15
+    frequency: 8000 Hz
+light:
+  - platform: monochromatic
+    name: "eee"
+    id: kitchen_led_lights
+    output: output_component1
+
+    gamma_correct: 1
+    restore_mode: ALWAYS_OFF 

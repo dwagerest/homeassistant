@@ -1,0 +1,80 @@
+esphome:
+  name: test
+  platform: ESP32
+  board: esp32dev
+  on_boot:
+    priority: 600
+    # ...
+    then:
+      - sensor.template.publish:
+          id: count_sens
+          state: 0
+globals:
+   - id: debug_mode
+     type: int
+     restore_value: no
+     initial_value: '1'
+   - id: cover_steps
+     type: int
+     restore_value: no
+     initial_value: '10000'
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  services:
+    - service: control_servo
+      variables:
+        level: float
+      then:
+        - servo.write:
+            id: my_servo
+            level: !lambda 'return level / 100.0;'
+        - sensor.template.publish:
+            id: count_sens
+            state: !lambda 'return id(count_sens).state+1;'
+ota:
+  password: "400ba8dcef2d499aa4b29c7f46948efc"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  manual_ip:
+    static_ip: 192.168.3.144
+    gateway: 192.168.3.1
+    subnet: 255.255.255.0
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Test Fallback Hotspot"
+    password: !secret hotspot_password
+
+captive_portal:
+servo:
+  - id: my_servo
+    output: pwm_output
+    transition_length: 1s
+
+output:
+  - platform: ledc
+    id: pwm_output
+    pin: 17
+    frequency: 50 Hz
+    
+sensor:
+  - platform: template
+    name: "count"
+    id: count_sens
+
+#interval:
+#  - interval: 2s
+#    then:
+#     - servo.write:
+ #        id: my_servo
+ #        level: 0.7
+  #   - delay: 2s
+   #  - servo.write:
+    #     id: my_servo
+     #    level: 0.9

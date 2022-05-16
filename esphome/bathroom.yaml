@@ -1,0 +1,176 @@
+###
+
+esphome:
+  name: bathroom
+  on_boot:
+    - priority: -800.0
+      then:
+      - wait_until: 
+                condition:
+                  lambda: |-
+                    return id(total_hot_in_ha).state > 0;
+      - lambda: |-
+              id(cold_water_total) = id(total_cold_in_ha).state;
+      - lambda: |-
+              id(hot_water_total) = id(total_hot_in_ha).state;    
+      - sensor.template.publish:
+             id: total_hot_in_esp
+             state: !lambda 'return id(hot_water_total);'
+      - sensor.template.publish:
+             id: total_cold_in_esp
+             state: !lambda 'return id(cold_water_total);'             
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    
+    
+globals:
+  - id: cold_water_total
+    type: int
+    initial_value: '0'
+    #restore_value: yes
+  - id: hot_water_total
+    type: int
+    initial_value: '0'
+    #restore_value: yes
+        
+    
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+ services:
+    - service: coldwatervalue
+      variables:
+        newvalue: int
+      then:
+       - lambda: |-
+           id(cold_water_total) = newvalue;
+       - sensor.template.publish:
+              id: total_cold_in_esp
+              state: !lambda 'return id(cold_water_total);'            
+    - service: hotwatervalue
+      variables:
+        newvalue: int
+      then:
+       - lambda: |-
+           id(hot_water_total) = newvalue;  
+       - sensor.template.publish:
+              id: total_hot_in_esp
+              state: !lambda 'return id(hot_water_total);'
+ota:
+  password: "ba4823417eaeb1932559c5b2465cf7d6"
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  manual_ip:
+    static_ip: 192.168.3.103
+    gateway: 192.168.3.1
+    subnet: 255.255.255.0
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Bath Fallback Hotspot"
+    password: !secret hotspot_password
+
+captive_portal:
+
+
+
+
+
+binary_sensor:
+  - platform: gpio
+    pin: 19
+    name: "Bathroom_PIR"
+    device_class: motion
+  - platform: gpio
+    pin: 5
+    name: "Cold Pulse push"
+    filters:
+      - delayed_on_off: 400ms
+    on_press:
+      then:  
+        - lambda: |-
+            id(cold_water_total)+=10;
+        - sensor.template.publish:
+             id: total_cold_in_esp
+             state: !lambda 'return id(cold_water_total);'
+    on_release:
+      then:  
+        - lambda: |-
+            id(cold_water_total)+=10;        
+        - sensor.template.publish:
+             id: total_cold_in_esp
+             state: !lambda 'return id(cold_water_total);'
+  - platform: gpio
+    pin: 18
+    name: "Hot Pulse push"    
+    filters:
+      - delayed_on_off: 400ms    
+    on_press:
+      then:  
+        - lambda: |-
+            id(hot_water_total)+=10;
+        - sensor.template.publish:
+             id: total_hot_in_esp
+             state: !lambda 'return id(hot_water_total);'
+    on_release:
+      then:  
+        - lambda: |-
+            id(hot_water_total)+=10;         
+        - sensor.template.publish:
+             id: total_hot_in_esp
+             state: !lambda 'return id(hot_water_total);'            
+            
+sensor:            
+  - platform: template
+    name: "Template cold water"
+    id: total_cold_in_esp
+    lambda: |-
+      if (id(cold_water_total)>=0) {
+        return id(cold_water_total);
+      } 
+   
+    update_interval: 60s
+  - platform: template
+    id: total_hot_in_esp
+    name: "Template hot water"
+    lambda: |-
+      if (id(hot_water_total)>=0) {
+        return id(hot_water_total);
+      } 
+    update_interval: 60s    
+
+  - platform: aht10
+    temperature:
+      name: "Bathroom_Temperature"
+      accuracy_decimals: 1
+    humidity:
+      name: "Bathroom_Humidity"
+      accuracy_decimals: 1
+    update_interval: 30s 
+    
+  - platform: homeassistant
+    id: total_cold_in_ha
+    entity_id: sensor.total_cold_in_ha
+  - platform: homeassistant
+    id: total_hot_in_ha
+    entity_id: sensor.total_hot_in_ha
+i2c:
+  sda: 0
+  scl: 2
+  scan: true
+  id: bus_a        
+switch:
+  - platform: restart
+    name: "Restart"
+
+  - platform: gpio
+    name: "Bathroom_Fan"
+    restore_mode: ALWAYS_OFF
+    pin: 32
